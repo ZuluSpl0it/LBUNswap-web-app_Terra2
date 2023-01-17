@@ -25,7 +25,6 @@ const SwapSelectToken: FC<PropsWithChildren<Props>> = ({
   ...props
 }) => {
   const { formatTokenName } = props
-
   let symbol = ""
   let icon = ""
   if (asset !== undefined) {
@@ -53,9 +52,10 @@ const SwapSelectToken: FC<PropsWithChildren<Props>> = ({
           ? formatTokenName?.(symbol) ?? lookupSymbol(symbol)
           : MESSAGE.Form.Button.SelectToken}
       </div>
-      <Icon name={isOpen ? "expand_less" : "expand_more"} size={24} />
+      {/*<Icon name={isOpen ? "expand_less" : "expand_more"} size={24} /> rbh*/}
     </button>
   )
 }
 
 export default SwapSelectToken
+  

@@ -14,7 +14,9 @@ const TabView: FC<PropsWithChildren<TabViewProps>> = ({
   children,
   side,
 }) => {
-  const location = useLocation()
+  let location = useLocation()
+  //rbh always returns to LBUN
+  //location.search = '?type=swap&from=uluna&to=terra1ulr678u52qwt27dsgxrftthq20a8v8t9s8f3hz5z8s62wsu6rslqyezul4'
 
   return !selectedTabName ? null : (
     <div className={styles.wrapper}>
@@ -53,7 +55,7 @@ const TabView: FC<PropsWithChildren<TabViewProps>> = ({
           {extra?.length && (
             <div className={styles.extra}>
               {extra.map(({ iconUrl, onClick, disabled }) => (
-                <button
+                  <button
                   key={iconUrl}
                   className={styles.extra__item}
                   type="button"
@@ -63,7 +65,7 @@ const TabView: FC<PropsWithChildren<TabViewProps>> = ({
                 />
               ))}
             </div>
-          )}
+              )}
         </div>
 
         <section className={styles.content}>{children}</section>

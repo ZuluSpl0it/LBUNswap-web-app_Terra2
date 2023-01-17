@@ -44,6 +44,7 @@ const SwapFormGroup = ({
   const [inputFontSize, setInputFontSize] = useState(24)
   useEffect(() => {
     if (inputRef?.current) {
+      //console.log(Error('Trace me baby...'))
       const computedStyle = window.getComputedStyle(inputRef.current)
       const elSpan = document.createElement("span")
       elSpan.innerText = inputRef?.current?.value
@@ -51,7 +52,7 @@ const SwapFormGroup = ({
       elSpan.style.position = "absolute"
       elSpan.style.left = "-9999px"
       elSpan.style.font = computedStyle.font
-      elSpan.style.fontSize = "24px"
+      elSpan.style.fontSize = "24px" 
       document.body.appendChild(elSpan)
       const calculatedFontSize =
         (24 * inputRef.current.clientWidth) / elSpan.clientWidth
@@ -77,7 +78,7 @@ const SwapFormGroup = ({
           <header className={styles.header}>
             <section className={styles.label}>
               <label htmlFor={input?.id}>{label}</label>
-            </section>
+        </section>
 
             {help && (
               <section className={styles.help}>

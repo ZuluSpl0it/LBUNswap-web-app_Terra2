@@ -174,9 +174,8 @@ const Sidebar = () => {
           <NavLink
             to="/"
             className={location.pathname?.includes("/pairs") ? "active" : ""}
-            onClick={() => close()}
-          >
-            Dashboard
+            onClick={() => close()}>
+            Project
           </NavLink>
           <NavLink to="/swap" onClick={() => close()}>
             Swap

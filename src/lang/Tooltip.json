@@ -100,10 +100,10 @@
     "Deposit": "Passing the quorum will return the deposit to the creator. Failure to pass quorum will distribute the deposit to all MIR stakers."
   },
   "Swap": {
-    "Rate": "Swap price is calculated based on the pool price and spread",
-    "MinimumReceived": "Expected minimum quantity to be received based on the current price, maximum spread, and trading fee",
+    "Rate": "Calculated based on the circulating LBUN supply",
+    "MinimumReceived": "Average value in USD for each unit",
     "TradingFee": "0.3% of asset received by the user is paid to Terraswap pool",
-    "TxFee": "Fee paid to execute this transaction",
+    "TxFee": "Fee paid to execute this transaction (estimated)",
     "Spread": "Fee paid due to the difference between market price and estimated price"
   }
 }

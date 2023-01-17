@@ -174,7 +174,7 @@ const Result = ({ response, error, onFailure, parserKey }: ResultProps) => {
                     ?.filter((msg) => !!msg?.transformed?.canonicalMsg)
                     .map((msg) =>
                       msg?.transformed?.canonicalMsg?.map((str) => (
-                        <div style={{ color: "#5c5c5c", fontSize: 18 }}>
+                        <div style={{ color: "#5c5c5c", fontSize: 14 }}>
                           <TxDescription
                             network={{ ...config, name: network?.name }}
                             config={{ printCoins: 3 }}

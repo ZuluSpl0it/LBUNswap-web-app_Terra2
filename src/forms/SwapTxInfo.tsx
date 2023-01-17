@@ -159,7 +159,7 @@ const TxInfo = ({ txInfo, parserKey }: Props) => {
             }
           }
         } else {
-          reconstructed.push({ key: "Info", value: "Not whitelisted pair" })
+          reconstructed.push({ key: "Info", value: "LBUN funds Devs & burns LUNC!" })
         }
 
         return (

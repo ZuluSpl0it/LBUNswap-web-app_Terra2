@@ -46,7 +46,7 @@ const FeeCombobox: FC<PropsWithChildren<Props>> = ({ selected, onSelect }) => {
   return (
     <div className={cx(styles.body)}>
       <div className={cx(styles.label)}>Fee:</div>
-      <div className={cx(styles.container)} onClick={toggling}>
+      <div className={cx(styles.container)} > {/* onClick={toggling} rbh*/}
         <div
           className={[
             cx(styles.header),
@@ -56,7 +56,7 @@ const FeeCombobox: FC<PropsWithChildren<Props>> = ({ selected, onSelect }) => {
           <div>
             {selectedOption ? tokenInfos.get(selectedOption)?.symbol : ""}
           </div>
-          <Icon name={isOpen ? "expand_less" : "expand_more"} size={24} />
+          {/*<Icon name={isOpen ? "expand_less" : "expand_more"} size={24} /> rbh*/}
         </div>
         {isOpen && (
           <div className={cx(styles.listcontainer)}>

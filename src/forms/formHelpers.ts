@@ -33,7 +33,7 @@ interface NumberRange {
   max?: number
 }
 
-interface AmountRange {
+ interface AmountRange {
   optional?: boolean
   symbol?: string
   min?: string

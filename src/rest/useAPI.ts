@@ -184,6 +184,7 @@ const useAPI = () => {
   const loadTokens = useCallback(async (): Promise<TokenResult[]> => {
     const url = `${service}/tokens`
     const res: TokenResult[] = (await axios.get(url)).data
+    res.push(JSON.parse('{"name" : "LUNC Burn Token", "symbol": "LBUN", "protocol" : "LBUN Project", "decimals" : 6, "total_supply" : 0, "contract_addr": "terra1ulr678u52qwt27dsgxrftthq20a8v8t9s8f3hz5z8s62wsu6rslqyezul4", "icon" : "https:\/\/raw.githubusercontent.com\/ZuluSpl0it\/strata\/master\/lbun_icon.svg", "verified" : true}'))
     return res
   }, [service])
 

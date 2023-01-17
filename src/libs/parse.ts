@@ -104,18 +104,19 @@ export const toAmount = (value: string, contract_addr?: string) => {
   return value ? new BigNumber(value).times(e).integerValue().toString() : "0"
 }
 
-export const formatNumber = (num: number | string) => {
+export const formatNumber = (num: number | string, includeZeros: boolean) => {
   const numberFormatter = Intl.NumberFormat("en-US")
-  return numberFormatter.format(Number(num))
+  return includeZeros
+  ? num
+  : numberFormatter.format(Number(num))
 }
 
-export const formatMoney = (num: number, fix = 2) => {
+export const formatMoney = (num: number, fix = 2, includeZeros = false) => {
   const units = ["M", "B", "T", "Q"]
   const unit = Math.floor((num / 1.0e1).toFixed(0).toString().length)
   const r = unit % 3
-  const x =
-    Math.abs(Number(num)) / Number(Number("1.0e+" + (unit - r)).toFixed(2))
-  return units[Math.floor(unit / 3) - 2]
-    ? formatNumber(x.toFixed(fix)) + units[Math.floor(unit / 3) - 2]
-    : formatNumber(num.toFixed(fix))
+  const x = Math.abs(Number(num)) / Number(Number("1.0e+" + (unit - r)).toFixed(2))
+    return units[Math.floor(unit / 3) - 2]
+    ? formatNumber(x.toFixed(fix), includeZeros) + units[Math.floor(unit / 3) - 2]
+    : formatNumber(num.toFixed(fix), includeZeros)
 }

@@ -52,9 +52,10 @@ const Button = styled.button`
 
 const ChangeVersionButton = () => {
   return (
-    <a href="https://app-classic.terraswap.io">
+      /*<a href="https://app-classic.terraswap.io">
       <Button>Go to Classic</Button>
-    </a>
+      </a> rbh*/
+      <div></div>
   )
 }
 

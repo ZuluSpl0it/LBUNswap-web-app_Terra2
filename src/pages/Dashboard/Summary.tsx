@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
 import { formatMoney } from "libs/parse"
 import styled from "styled-components"
+import { ExchangeRateTuple } from "@terra-money/terra.js"
 
 type SummaryItemProps = {
   label: string
   value: string
+  isCurrency: boolean
+  decimals: number
   variation?: number
 }
 
@@ -61,13 +64,13 @@ const SummaryItem = styled.div.attrs<SummaryItemProps>({})<SummaryItemProps>`
 
   & label {
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 800;
     font-stretch: normal;
     font-style: normal;
     line-height: normal;
     letter-spacing: normal;
     text-align: left;
-    color: #ffffff;
+    color: #0d0d2b;
     display: inline-block;
     margin-right: 13px;
   }
@@ -114,10 +117,9 @@ const Summary: React.FC<SummaryProps> = ({ data }) => {
         {data.map((item) => (
           <SummaryItem {...item} key={item.label}>
             <label>{item.label}:</label>
-            <span>
-              $
-              {formatMoney(Number(item.value)) || Number(item.value).toFixed(2)}
-            </span>
+            {item.isCurrency
+              ? <span>$ {formatMoney(Number(item.value), Number(item.decimals), true)}</span> 
+              : <span> {Number(item.value).toFixed(4)}</span>}
             {typeof item.variation === "number" && (
               <span>
                 &nbsp;(

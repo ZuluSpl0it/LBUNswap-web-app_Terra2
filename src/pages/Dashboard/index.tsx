@@ -21,6 +21,10 @@ import Tooltip from "components/Tooltip"
 import Loading from "components/Loading"
 import { USDC } from "constants/constants"
 
+import About_website from "components/About_website"
+
+
+
 const Wrapper = styled(container)`
   width: 100%;
   height: auto;
@@ -129,19 +133,77 @@ const Dashboard = () => {
     return res
   })
   const [searchKeyword, setSearchKeyword] = useState("")
-  const [selectedVolumeLength, setSelectedVolumeLength] = useState(30)
-  const [selectedLiquidityLength, setSelectedLiquidityLength] = useState(30)
+  const [selectedVolumeLength, setSelectedVolumeLength] = useState(7)
+  const [selectedLiquidityLength, setSelectedLiquidityLength] = useState(7)
 
   const [tableVisibleFlag, setTableVisibleFlag] = useState(false)
+  const [autoRefreshTicker, setAutoRefreshTicker] = useState(false)
 
-  useEffect(() => {
+  let [currentSupply, setCurrentSupply] = useState(0)
+  let [currentPrice, setCurrentPrice] = useState(0)
+  let [currentReserve, setCurrentReserve] = useState(0)
+  let [taxCollected, setTaxCollected] = useState(0)
+  let [luna1Price, setLuna1Price] = useState(0)
+  let [luna2Price, setLuna2Price] = useState(0)
+
+  /*useEffect(() => {
     const timerId = setTimeout(() => {
       setTableVisibleFlag(true)
     }, 1000)
     return () => {
       clearTimeout(timerId)
     }
+  }, [])*/
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      if (
+        window?.navigator?.onLine &&
+        window?.document?.hasFocus()
+      ) {
+        setAutoRefreshTicker((current) => !current)
+      }
+    }, 30000)
+    return () => {
+      clearInterval(timerId)
+    }
   }, [])
+
+  useEffect(() => {
+    const url =
+      "https://phoenix-lcd.terra.dev/cosmwasm/wasm/v1/contract/terra1ulr678u52qwt27dsgxrftthq20a8v8t9s8f3hz5z8s62wsu6rslqyezul4/smart/eyJjdXJ2ZV9pbmZvIjp7fX0="
+    fetch(url)
+      .then((response) => response.text())
+      .then((text) => {
+        console.log(text)
+        const tbcData = JSON.parse(text)
+        setCurrentSupply(Number(tbcData.data.supply) / 1000000)
+        setCurrentPrice(Number(tbcData.data.spot_price))
+        setCurrentReserve(Number(tbcData.data.reserve) / 1000000)
+        setTaxCollected(Number(tbcData.data.tax_collected) / 1000000)
+      })
+
+      const url2 =
+        "https://api.coingecko.com/api/v3/simple/price?ids=terra-luna-2&vs_currencies=usd"
+      fetch(url2)
+        .then((response) => response.text())
+        .then((text) => {
+          console.log(text)
+          const apiCoinGeckoLuna = JSON.parse(text)
+          setLuna2Price(Number(apiCoinGeckoLuna["terra-luna-2"]["usd"]))     
+        })
+
+      const url3 =
+          "https://api.coingecko.com/api/v3/simple/price?ids=terra-luna&vs_currencies=usd"
+        fetch(url3)
+          .then((response) => response.text())
+          .then((text) => {
+            console.log(text)
+            const apiCoinGeckoLunc = JSON.parse(text)
+            setLuna1Price(Number(apiCoinGeckoLunc["terra-luna"]["usd"]))    
+      })
+    return
+  }, [autoRefreshTicker])
 
   const selectedVolumeChart = useMemo(() => {
     return (chart || []).slice(0, selectedVolumeLength)
@@ -191,52 +253,126 @@ const Dashboard = () => {
         <Summary
           data={[
             {
-              label: "Volume 24H",
-              value: recent?.daily?.volume
-                ? `${lookup(recent?.daily?.volume, USDC)}`
-                : "",
-              variation: parseFloat(
+              label: "LBUN / LUNC",
+              //value: recent?.daily?.volume
+              //  ? `${lookup(recent?.daily?.volume, USDC)}`
+              //  : "",
+              value: ((currentPrice * 0.25 * luna2Price)/luna1Price).toString(),
+              isCurrency: false,
+              decimals: 6,
+              /*variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.volumeIncreasedRate || "0") * 100
                 ).toFixed(2)
-              ),
+              ),*/
             },
             {
-              label: "Volume 7D",
-              value: recent?.weekly?.volume
-                ? `${lookup(recent?.weekly?.volume, USDC)}`
-                : "",
-              variation: parseFloat(
+              label: "LBUN / USD",
+              //value: recent?.daily?.volume
+              //  ? `${lookup(recent?.daily?.volume, USDC)}`
+              //  : "",
+              value: (currentPrice * luna2Price).toString(),
+              isCurrency: true,
+              decimals: 2,
+              /*variation: parseFloat(
+                (
+                  parseFloat(recent?.daily?.volumeIncreasedRate || "0") * 100
+                ).toFixed(2)
+              ),*/
+            },
+            {
+              label: "Circulating Supply",
+              //value: recent?.weekly?.volume
+              //  ? `${lookup(recent?.weekly?.volume, USDC)}`
+              //  : "",
+              value: `${currentSupply}`,
+              isCurrency: false,
+              decimals: 6,
+              /*variation: parseFloat(
                 (
                   parseFloat(recent?.weekly?.volumeIncreasedRate || "0") * 100
                 ).toFixed(2)
-              ),
+              ),*/
             },
             {
-              label: "Fee 24H",
-              value: recent?.daily?.fee
-                ? `${lookup(recent?.daily?.fee, USDC)}`
-                : "",
-              variation: parseFloat(
+              label: "Market Cap",
+              //value: recent?.weekly?.volume
+              //  ? `${lookup(recent?.weekly?.volume, USDC)}`
+              //  : "",
+              value: (currentSupply * currentPrice * luna2Price).toString(),
+              isCurrency: true,
+              decimals: 2,
+              /*variation: parseFloat(
+                (
+                  parseFloat(recent?.weekly?.volumeIncreasedRate || "0") * 100
+                ).toFixed(2)
+              ),*/
+            },
+ 
+          ]}
+        />
+
+      <Summary
+          data={[
+            {
+              label: "Dev Donations",
+              //value: recent?.daily?.fee
+              //  ? `${lookup(recent?.daily?.fee, USDC)}`
+              //  : "",
+              value: (taxCollected * 0.25 * luna2Price).toString(),
+              isCurrency: true,
+              decimals: 2,
+              /*variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.feeIncreasedRate || "0") * 100
                 ).toFixed(2)
-              ),
+              ),*/
             },
             {
-              label: "TVL",
-              value: recent?.daily?.liquidity
-                ? `${lookup(recent?.daily?.liquidity, USDC)}`
-                : "",
-              variation: parseFloat(
+              label: "LUNC Burned",
+              //value: recent?.daily?.fee
+              //  ? `${lookup(recent?.daily?.fee, USDC)}`
+              //  : "",
+              value: ((taxCollected * 0.25 * luna2Price)/luna1Price).toString(),
+              isCurrency: false,
+              decimals: 4,
+              /*variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.liquidityIncreasedRate || "0") * 100
                 ).toFixed(2)
-              ),
+              ),*/
+            },
+            {
+              label: "Raffle Winnings",
+              //value: recent?.daily?.liquidity
+              //  ? `${lookup(recent?.daily?.liquidity, USDC)}`
+              //  : "",
+              value: (taxCollected * 0.25 * luna2Price).toString(),
+              isCurrency: true,
+              decimals: 2,
+              /*variation: parseFloat(
+                (
+                  parseFloat(recent?.daily?.liquidityIncreasedRate || "0") * 100
+                ).toFixed(2)
+              ),*/
+            },
+            {
+              label: "Tax Collected",
+              //value: recent?.daily?.liquidity
+              //  ? `${lookup(recent?.daily?.liquidity, USDC)}`
+              //  : "",
+              value: `${taxCollected * luna2Price}`,
+              isCurrency: true,
+              decimals: 2,
+              /*variation: parseFloat(
+                (
+                  parseFloat(recent?.daily?.liquidityIncreasedRate || "0") * 100
+                ).toFixed(2)
+              ),*/
             },
           ]}
         />
-        <Row>
+     {/*}   <Row>
           <Card className="left">
             <Row
               style={{
@@ -245,10 +381,10 @@ const Dashboard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ flex: "unset" }}>
-                <b>Transaction Volume</b>
+              <div style={{ flex: "unset", fontSize: 18, color: "#0d0d2b" }}>
+                <b>LBUN Price</b>
               </div>
-              <div style={{ flex: "unset" }}>
+              <div style={{ flex: "unset"}}>
                 <Select
                   value={selectedVolumeLength}
                   onChange={(e) =>
@@ -263,7 +399,7 @@ const Dashboard = () => {
                 </Select>
               </div>
             </Row>
-            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 14, color: "#0d0d2b" }}>
               {formatMoney(
                 Number(
                   lookup(
@@ -288,85 +424,6 @@ const Dashboard = () => {
             />
           </Card>
           <Card className="right">
-            <div style={{ marginBottom: 10 }}>
-              <b>Top Trading</b>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div
-                className="desktop-only"
-                style={{
-                  display: "inline-block",
-                  maxWidth: 208,
-                  maxHeight: 208,
-                  padding: 16,
-                  flex: 1,
-                }}
-              >
-                <Chart
-                  type="pie"
-                  labels={[
-                    ...(topTrading || [])?.map((item) => item.pairAlias),
-                    "Rest of pairs",
-                  ]}
-                  data={[
-                    ...(topTrading || [])?.map((item) =>
-                      Number(item.volumeUst)
-                    ),
-                    restTradingUst,
-                  ]}
-                />
-              </div>
-              <div style={{ flex: 2 }}>
-                <List
-                  data={(topTrading || [])?.map((item) => {
-                    const {
-                      token0,
-                      token0Symbol,
-                      token1,
-                      token1Symbol,
-                      volumeUst,
-                      pairAddress,
-                    } = item
-                    return (
-                      <Link
-                        to={`/pairs/${pairAddress}`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "flex-start",
-                          flexWrap: "nowrap",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <div>
-                          <AssetIcon address={token0} alt={token0Symbol} />
-                          <AssetIcon
-                            address={token1}
-                            alt={token1Symbol}
-                            style={{ left: -8 }}
-                          />
-                        </div>
-                        <div>
-                          {token0Symbol}-{token1Symbol} /&nbsp;
-                          {formatMoney(Number(lookup(volumeUst, USDC)))} USDC
-                        </div>
-                      </Link>
-                    )
-                  })}
-                />
-              </div>
-            </div>
-          </Card>
-        </Row>
-        <Row>
-          <Card className="left">
             <Row
               style={{
                 marginBottom: 10,
@@ -374,7 +431,7 @@ const Dashboard = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ flex: "unset" }}>
+              <div style={{ flex: "unset", fontSize: 18, color: "#0d0d2b"  }}>
                 <b>Total Liquidity</b>
               </div>
               <div style={{ flex: "unset" }}>
@@ -392,8 +449,18 @@ const Dashboard = () => {
                 </Select>
               </div>
             </Row>
-            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 14 }}>
-              &nbsp;
+            <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 14, color: "#0d0d2b" }}>
+              {formatMoney(
+                Number(
+                  lookup(
+                    selectedVolumeChart.reduce((prev, current) => {
+                      return prev + parseInt(current.volumeUst, 10)
+                    }, 0),
+                    USDC
+                  )
+                )
+              )}
+              &nbsp;USDC
             </div>
             <Chart
               type="line"
@@ -406,250 +473,10 @@ const Dashboard = () => {
               })}
             />
           </Card>
-          <Card className="right">
-            <div style={{ marginBottom: 10 }}>
-              <b>Top Liquidity</b>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div
-                className="desktop-only"
-                style={{
-                  display: "inline-block",
-                  maxWidth: 208,
-                  maxHeight: 208,
-                  padding: 16,
-                  flex: 1,
-                }}
-              >
-                <Chart
-                  type="pie"
-                  labels={[
-                    ...(topLiquidity || [])?.map((item) => item.pairAlias),
-                    "Rest of pairs",
-                  ]}
-                  data={[
-                    ...(topLiquidity || [])?.map((item) =>
-                      Number(item.liquidityUst)
-                    ),
-                    restLiquidityUst,
-                  ]}
-                />
-              </div>
-              <div style={{ flex: 2 }}>
-                <List
-                  data={(topLiquidity || [])?.map((item) => {
-                    const {
-                      token0,
-                      token0Symbol,
-                      token1,
-                      token1Symbol,
-                      liquidityUst,
-                      pairAddress,
-                    } = item
+        </Row>      Uncomment to see charts*/}
 
-                    return (
-                      <Link
-                        to={`/pairs/${pairAddress}`}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "flex-start",
-                          flexWrap: "nowrap",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <div>
-                          <AssetIcon address={token0} alt={token0Symbol} />
-                          <AssetIcon
-                            address={token1}
-                            alt={token1Symbol}
-                            style={{ left: -8 }}
-                          />
-                        </div>
-                        <div>
-                          {token0Symbol}-{token1Symbol} /&nbsp;
-                          {formatMoney(Number(lookup(liquidityUst, USDC)))} USDC
-                        </div>
-                      </Link>
-                    )
-                  })}
-                />
-              </div>
-            </div>
-          </Card>
-        </Row>
-        <Row>
-          <Card>
-            <Row
-              style={{
-                marginBottom: 10,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <b>Pairs</b>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <Input
-                  placeholder="Search"
-                  onChange={(e) => {
-                    setSearchKeyword(e?.target?.value || "")
-                  }}
-                />
-              </div>
-            </Row>
-            <Row>
-              {!tableVisibleFlag && (
-                <div
-                  style={{
-                    height: 240,
-                    position: "relative",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    display: "flex",
-                  }}
-                >
-                  <Loading size={36} color="#0222ba" />
-                </div>
-              )}
-              {tableVisibleFlag && (
-                <Table
-                  isLoading={isPairsLoading}
-                  columns={[
-                    {
-                      accessor: "pairAlias",
-                      Header: "Pairs",
-                      width: 220,
-                      Cell: (data: any): ReactElement<any, any> | null => {
-                        const { original } = data?.row
-                        if (!original) {
-                          return null
-                        }
-                        const {
-                          token0,
-                          token0Symbol,
-                          token1,
-                          token1Symbol,
-                          pairAlias,
-                        } = original
-                        return (
-                          <>
-                            <AssetIcon address={token0} alt={token0Symbol} />
-                            <AssetIcon
-                              address={token1}
-                              alt={token1Symbol}
-                              style={{ left: -8 }}
-                            />
-                            <span
-                              style={{
-                                display: "inline-block",
-                                verticalAlign: "middle",
-                              }}
-                            >
-                              {pairAlias}
-                            </span>
-                          </>
-                        )
-                      },
-                    },
-                    {
-                      accessor: "liquidityUst",
-                      Header: "Liquidity",
-                      sortDescFirst: true,
-                      sortType: (a, b) =>
-                        Number(a.original.liquidityUst) >
-                        Number(b.original.liquidityUst)
-                          ? 1
-                          : -1,
-                      width: 230,
-                      Cell: ({ cell: { value } }: any) => (
-                        <span>
-                          {formatMoney(Number(lookup(`${value}`, USDC)))} USDC
-                        </span>
-                      ),
-                    },
-                    {
-                      accessor: "volumeUst",
-                      Header: "Volume (24H)",
-                      sortDescFirst: true,
-                      sortType: (a, b) =>
-                        Number(a.original.volumeUst) >
-                        Number(b.original.volumeUst)
-                          ? 1
-                          : -1,
-                      width: 230,
-                      Cell: ({ cell: { value } }: any) => (
-                        <span>
-                          {formatMoney(Number(lookup(`${value}`, USDC)))} USDC
-                        </span>
-                      ),
-                    },
-                    {
-                      accessor: "token0Volume",
-                      Header: "Fees (24H)",
-                      sortDescFirst: true,
-                      sortType: (a, b) =>
-                        Number(a.original.volumeUst) >
-                        Number(b.original.volumeUst)
-                          ? 1
-                          : -1,
-                      width: 180,
-                      Cell: (data: any): ReactElement<any, any> | null => {
-                        const { original } = data?.row
-                        if (!original) {
-                          return null
-                        }
-                        const { volumeUst } = original
-                        return (
-                          <span>
-                            {formatMoney(
-                              Number(lookup(`${volumeUst * 0.003}`, USDC))
-                            )}{" "}
-                            USDC
-                          </span>
-                        )
-                      },
-                    },
-                    {
-                      accessor: "apr",
-                      Header: (
-                        <Tooltip
-                          content="Commission APR (7D avg)"
-                          style={{ display: "inline-flex" }}
-                        >
-                          APR (7D avg)
-                        </Tooltip>
-                      ),
-                      sortDescFirst: true,
-                      sortType: (a, b) =>
-                        Number(a.original.apr) > Number(b.original.apr)
-                          ? 1
-                          : -1,
-                      width: 140,
-                      Cell: ({ cell: { value } }: any) => (
-                        <span>{(Number(value) * 100).toFixed(2)}%</span>
-                      ),
-                    },
-                  ]}
-                  data={pairs || []}
-                  onRowClick={(row) =>
-                    navigate(`/pairs/${row.original.pairAddress}`)
-                  }
-                  wrapperStyle={{ tableLayout: "fixed" }}
-                  searchKeyword={searchKeyword}
-                />
-              )}
-            </Row>
-          </Card>
-        </Row>
+        <About_website></About_website>
+
         <Footer>
           <LatestBlock
             currentHeight={recent?.daily?.height || 0}

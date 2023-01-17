@@ -26,6 +26,7 @@ import { TooltipIcon } from "components/Tooltip"
 import Tooltip from "lang/Tooltip.json"
 import useGasPrice from "rest/useGasPrice"
 import { Coins, CreateTxOptions } from "@terra-money/terra.js"
+import { MsgExecuteContract } from "@terra-money/terra.js"
 import { Type } from "pages/Swap"
 import usePool from "rest/usePool"
 import { insertIf, isNativeToken } from "libs/utils"
@@ -45,6 +46,8 @@ import useLocalStorage from "libs/useLocalStorage"
 import useAutoRouter from "rest/useAutoRouter"
 import WarningModal from "components/Warning"
 import Disclaimer from "components/DisclaimerAgreement"
+import useTBC from "rest/useTBC"
+import { formatMoney } from "libs/parse"
 
 enum Key {
   value1 = "value1",
@@ -85,6 +88,8 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
 
   const tokenInfos = useTokenInfos()
   const lpTokenInfos = useLpTokenInfos()
+
+  const taxRate = 0.048
 
   const { generateContractMessages } = useAPI()
   const { fee } = useNetwork()
@@ -144,11 +149,17 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
   } = form
   const [isReversed, setIsReversed] = useState(false)
   const formData = watch()
+ 
 
   useEffect(() => {
     if (!from && !to) {
       setTimeout(() => {
         searchParams.set("from", type === Type.WITHDRAW ? InitLP : ULUNA)
+        //made LBUN/LUNA the only pair - rbh
+        searchParams.set(
+          "to",
+          "terra1ulr678u52qwt27dsgxrftthq20a8v8t9s8f3hz5z8s62wsu6rslqyezul4"
+        )
         setSearchParams(searchParams, { replace: true })
       }, 100)
     }
@@ -296,7 +307,7 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
     }
   }, [isPairsLoading, type, lpTokenInfos, from, tokenInfo1, tokenInfo2, pairs])
 
-  const { isLoading: isAutoRouterLoading, profitableQuery } = useAutoRouter({
+  const { isLoading: isAutoRouterLoading, profitableQuery } = useTBC({
     from: from,
     to: to,
     amount: formData[Key.value1],
@@ -350,45 +361,51 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
         (type !== Type.WITHDRAW ? formData[Key.symbol2] : true)
       )
     ) {
+      //return []
+    }
+
+    if (
+      Number(formData[Key.value1]) == 0 ||
+      Number(formData[Key.value2]) == 0
+    ) {
       return []
     }
-    const minimumReceived = profitableQuery
-      ? calc.minimumReceived({
-          expectedAmount: `${profitableQuery?.simulatedAmount}`,
-          max_spread: String(slippageTolerance),
-          commission: "0",
-          decimals: tokenInfo1?.decimals,
-        })
-      : "0"
 
     return [
       ...insertIf(type === Type.SWAP, {
         title: <TooltipIcon content={Tooltip.Swap.Rate}>Rate</TooltipIcon>,
-        content: `${decimal(profitableQuery?.price, tokenInfo1?.decimals)} ${
-          formData[Key.symbol1]
-        } per ${formData[Key.symbol2]}`,
+        content:
+          formData[Key.symbol2] === "LBUN"
+            ? `${decimal(profitableQuery?.price, tokenInfo1?.decimals)} ${
+                formData[Key.symbol1]
+              } = 1  ${formData[Key.symbol2]}`
+            : `${decimal(
+                profitableQuery?.lunaLbunPrice,
+                tokenInfo1?.decimals
+              )} ${formData[Key.symbol1]} = 1  ${formData[Key.symbol2]}`,
       }),
-      ...insertIf(type !== Type.SWAP, {
-        title: `${formData[Key.symbol1]} price`,
-        content: `${poolResult && decimal(poolResult.price1, 6)} ${
-          formData[Key.symbol1]
-        } per LP`,
-      }),
-      ...insertIf(type !== Type.SWAP, {
-        title: `${formData[Key.symbol2]} price`,
-        content: `${poolResult && decimal(poolResult.price2, 6)} ${
-          formData[Key.symbol2]
-        } per LP`,
-      }),
+
       ...insertIf(type === Type.SWAP, {
         title: (
           <TooltipIcon content={Tooltip.Swap.MinimumReceived}>
-            Minimum Received
+            Rate (in USD)
           </TooltipIcon>
         ),
-        content: (
-          <Count symbol={formData[Key.symbol2]}>{minimumReceived}</Count>
-        ),
+        content:
+          formData[Key.symbol2] === "LBUN"
+            ? `$${formatMoney(
+                Number(profitableQuery?.price) *
+                  Number(profitableQuery?.lunaUsdPrice),
+                4,
+                true
+              )} USD = 1 ${formData[Key.symbol2]}`
+            : `$${formatMoney(
+                (Number(formData[Key.value2]) *
+                  Number(profitableQuery?.lunaUsdPrice)) /
+                  Number(formData[Key.value1]),
+                4,
+                true
+              )} USD = 1 ${formData[Key.symbol1]}`,
       }),
       ...insertIf(type === Type.PROVIDE, {
         title: (
@@ -466,63 +483,6 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
     spread,
     tokenInfos,
   ])
-
-  const getMsgs = useCallback(
-    (
-      _msg: any,
-      {
-        amount,
-        token,
-        minimumReceived,
-        beliefPrice,
-      }: {
-        amount?: string | number
-        token?: string
-        minimumReceived?: string | number
-        beliefPrice?: string | number
-      }
-    ) => {
-      const msg = Array.isArray(_msg) ? _msg[0] : _msg
-
-      if (msg?.execute_msg?.swap) {
-        msg.execute_msg.swap.belief_price = `${beliefPrice}`
-      }
-      if (msg?.execute_msg?.send?.msg?.swap) {
-        msg.execute_msg.send.msg.swap.belief_price = `${beliefPrice}`
-      }
-      if (msg?.execute_msg?.send?.msg?.execute_swap_operations) {
-        msg.execute_msg.send.msg.execute_swap_operations.minimum_receive =
-          parseInt(`${minimumReceived}`, 10).toString()
-        if (isNativeToken(token || "")) {
-          msg.coins = Coins.fromString(toAmount(`${amount}`) + token)
-        }
-
-        msg.execute_msg.send.msg = btoa(
-          JSON.stringify(msg.execute_msg.send.msg)
-        )
-      } else if (msg?.execute_msg?.send?.msg) {
-        msg.execute_msg.send.msg = btoa(
-          JSON.stringify(msg.execute_msg.send.msg)
-        )
-      }
-      if (msg?.execute_msg?.execute_swap_operations) {
-        msg.execute_msg.execute_swap_operations.minimum_receive = parseInt(
-          `${minimumReceived}`,
-          10
-        ).toString()
-        msg.execute_msg.execute_swap_operations.offer_amount = toAmount(
-          `${amount}`,
-          token
-        )
-
-        if (isNativeToken(token || "")) {
-          msg.coins = Coins.fromString(toAmount(`${amount}`) + token)
-        }
-      }
-      return [msg]
-    },
-    []
-  )
 
   const { gasPrice } = useGasPrice(formData[Key.feeSymbol])
 
@@ -737,6 +697,7 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
   const handleSubmit = useCallback<SubmitHandler<Partial<Record<Key, string>>>>(
     async (values) => {
       const { value1, value2, feeSymbol, gasPrice } = values
+
       try {
         settingsModal.close()
 
@@ -745,48 +706,14 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
           if (!profitableQuery?.msg) {
             return
           }
-          msgs = getMsgs(profitableQuery?.msg, {
-            amount: `${value1}`,
-            minimumReceived: profitableQuery
-              ? calc.minimumReceived({
-                  expectedAmount: `${profitableQuery?.simulatedAmount}`,
-                  max_spread: String(slippageTolerance),
-                  commission: "0",
-                  decimals: tokenInfo1?.decimals,
-                })
-              : "0",
-            token: from,
-            beliefPrice: `${decimal(div(value1, value2), 18)}`,
-          })
-        } else {
-          msgs = await generateContractMessages(
-            {
-              [Type.PROVIDE]: {
-                type: Type.PROVIDE,
-                sender: `${walletAddress}`,
-                fromAmount: `${value1}`,
-                toAmount: `${value2}`,
-                from: `${from}`,
-                to: `${to}`,
-                slippage: slippageTolerance,
-              },
-              [Type.WITHDRAW]: {
-                type: Type.WITHDRAW,
-                sender: `${walletAddress}`,
-                amount: `${value1}`,
-                lpAddr: `${lpContract}`,
-              },
-            }[type] as any
-          )
-          msgs = msgs.map((msg: any) => {
-            return Array.isArray(msg) ? msg[0] : msg
-          })
+          //get the Tx Msgs
+          msgs = profitableQuery.msg
         }
 
         console.log(msgs)
 
         let txOptions: CreateTxOptions = {
-          msgs,
+          msgs: [msgs],
           memo: undefined,
           gasPrices: `${gasPrice}${
             findTokenInfoBySymbolOrContractAddr(feeSymbol)?.contract_addr
@@ -826,7 +753,6 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
       to,
       slippageTolerance,
       tokenInfo1,
-      getMsgs,
       profitableQuery,
       lpContract,
     ]
@@ -869,17 +795,6 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
           {...tabs}
           extra={[
             {
-              iconUrl: iconSettings,
-              onClick: () => {
-                if (settingsModal.isOpen) {
-                  settingsModal.close()
-                  return
-                }
-                settingsModal.open()
-              },
-              disabled: formState.isSubmitting,
-            },
-            {
               iconUrl: iconReload,
               onClick: () => {
                 searchParams.set("to", "")
@@ -893,25 +808,7 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
               disabled: formState.isSubmitting,
             },
           ]}
-          side={[
-            {
-              component: (
-                <Container sm>
-                  <Settings
-                    values={slippageSettings}
-                    onChange={(settings) => {
-                      setSlippageSettings(settings)
-                    }}
-                  />
-                </Container>
-              ),
-              visible: settingsModal.isOpen,
-              isModalOnMobile: true,
-              onClose: () => {
-                settingsModal.close()
-              },
-            },
-          ]}
+          side={[]}
         >
           <Container sm>
             <SwapFormGroup
@@ -1024,8 +921,6 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
                     }),
                 autoComplete: "off",
                 readOnly: true,
-                // [Type.PROVIDE, Type.WITHDRAW].includes(type) ||
-                // (!isReversed && isAutoRouterLoading),
                 onKeyDown: () => {
                   setIsReversed(true)
                 },
@@ -1062,10 +957,10 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
             <div>
               <div
                 style={{
-                  paddingTop: "20px",
+                  paddingTop: "20px"
                 }}
               >
-                <p>
+                <p style={{color: "#000"}}>
                   The displaying number is the simulated result and can be
                   different from the actual swap rate. Trade at your own risk.
                 </p>
@@ -1076,7 +971,9 @@ const SwapForm = ({ type, tabs }: { type: Type; tabs: TabViewProps }) => {
                       children: type || "Submit",
                       loading: formState.isSubmitting,
                       disabled:
-                        !formState.isValid ||
+                        !formState.isValid || 
+
+                        
                         formState.isValidating ||
                         simulationContents?.length <= 0 ||
                         (type === Type.SWAP &&

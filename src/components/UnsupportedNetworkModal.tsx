@@ -137,15 +137,15 @@ const UnsupportedNetworkModal: React.FC<{ isOpen?: boolean }> = ({
           </Button>
           {network?.name === "classic" && (
             <div style={{ color: "#aaaaaa", fontSize: 12 }}>
-              Or
+              {/*Or*/}
               <br />
               <a
                 href="https://app-classic.terraswap.io"
                 style={{ fontWeight: 500, fontSize: 13 }}
               >
-                Go to{" "}
+                {/*Go to{" "}*/}
                 <b style={{ textDecoration: "underline" }}>
-                  app-classic.terraswap.io
+                  {/*app-classic.terraswap.io*/}
                 </b>
               </a>
             </div>

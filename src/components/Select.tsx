@@ -46,7 +46,7 @@ const SelectElement = styled.select`
   padding: 5px 10px;
   padding-right: 29px;
   margin: 0;
-  border: solid 1px #0222ba;
+  border: solid 1px "#0d0d2b";
   background-color: #ffffff;
   border-radius: 8px;
 
@@ -58,7 +58,7 @@ const SelectElement = styled.select`
   line-height: normal;
   letter-spacing: normal;
   text-align: center;
-  color: #0222ba;
+  color: "#0d0d2b";
 
   appearance: none;
   -webkit-appearance: none;

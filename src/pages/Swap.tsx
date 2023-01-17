@@ -3,6 +3,7 @@ import SwapPage from "../components/SwapPage"
 import SwapForm from "../forms/SwapForm"
 import Container from "../components/Container"
 import { useSearchParams } from "react-router-dom"
+import Summary from "./Dashboard/Summary"
 
 export enum Type {
   "SWAP" = "swap",
@@ -22,8 +23,8 @@ const Swap = () => {
   const tabs = {
     tabs: [
       { name: Type.SWAP, title: "Swap" },
-      { name: Type.PROVIDE, title: "Provide" },
-      { name: Type.WITHDRAW, title: "Withdraw" },
+      /*{ name: Type.PROVIDE, title: "Provide" }, rbh
+        { name: Type.WITHDRAW, title: "Withdraw" }, rbh*/
     ],
     selectedTabName: type,
   }
@@ -43,7 +44,9 @@ const Swap = () => {
 
   return (
     <Container>
-      <SwapPage>{type && <SwapForm type={type} tabs={tabs} />}</SwapPage>
+      <SwapPage>
+        {type && <SwapForm type={type} tabs={tabs} />}
+      </SwapPage>
     </Container>
   )
 }

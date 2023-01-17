@@ -58,10 +58,10 @@ export default (config: Config, pairs: Pair[], type: string) => {
   } = config
   const [isOpen, setIsOpen] = useState(false)
   const toggle = () => (isOpen ? handleSelect(selected) : setIsOpen(!isOpen))
-
+  
   /* select asset */
   const handleSelect = (asset: string, isUnable?: boolean) => {
-    onSelect(asset, isUnable)
+    //onSelect(asset, isUnable) rbh*/ 
     setIsOpen(false)
   }
 
@@ -197,7 +197,8 @@ export default (config: Config, pairs: Pair[], type: string) => {
   return {
     isOpen,
     button: <SwapSelectToken {...select} />,
-    assets: (
+    assets: "" //replaced with empty string
+    /*(
       <Modal
         role="modal"
         isOpen={isOpen}
@@ -215,7 +216,8 @@ export default (config: Config, pairs: Pair[], type: string) => {
             assetList={assetList}
           />
         </SwapCard>
-      </Modal>
-    ),
-  }
+    </Modal> 
+    ), rbh */
+  } 
+ 
 }

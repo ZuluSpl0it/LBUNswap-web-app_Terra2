@@ -33,25 +33,25 @@ export const socialMediaList = [
   {
     icon: iconGitHub,
     iconLight: iconGitHubLight,
-    href: "https://github.com/terraswap",
+    href: "https://github.com/lbunproject/LBUNswap_terra2",
     title: "GitHub",
   },
   {
     icon: iconTwitter,
     iconLight: iconTwitterLight,
-    href: "https://twitter.com/terraswap_io",
+    href: "https://twitter.com/LbunProject",
     title: "Twitter",
   },
   {
     icon: iconDiscord,
     iconLight: iconDiscordLight,
-    href: "https://discord.gg/nfZgjyjtQq",
+    href: "https://discord.com/channels/1033586906094649434/1033586906094649440",
     title: "Discord",
   },
   {
     icon: iconDocuments,
     iconLight: iconDocumentsLight,
-    href: "https://docs.terraswap.io/",
+    href: "https://lbunproject.github.io/LBUN_whitepaper_terra2.github.io/?page=1",
     title: "Documents",
   },
 ]

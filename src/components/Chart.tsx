@@ -153,11 +153,11 @@ const getOptions = (
       borderWidth: 0,
     },
     line: {
-      borderColor: BLUE,
-      pointBackgroundColor: BLUE,
+      borderColor: "#0d0d2b",
+      pointBackgroundColor: "#f9aa4b",
       pointRadius: 0,
       pointHoverRadius: 0,
-      backgroundColor: "#D9DEF5",
+      backgroundColor: "#f9aa4b",
       ...config.lineStyle,
     },
   }[type]
@@ -170,10 +170,10 @@ const getOptions = (
   }
 
   const tooltips: ChartTooltipOptions = {
-    backgroundColor: "#ffffff",
-    titleFontColor: BLUE,
-    bodyFontColor: BLUE,
-    borderColor: BLUE,
+    backgroundColor: "#FFFFFF",
+    titleFontColor: "#0d0d2b",
+    bodyFontColor: "#0d0d2b",
+    borderColor: "#0d0d2b",
     borderWidth: 1,
     titleFontFamily: "Gotham",
     titleFontSize: 13,
@@ -235,7 +235,7 @@ const getOptions = (
             ticks: {
               source: "data" as const,
               // autoSkip: true,
-              fontColor: "#7282c9",
+              fontColor: "#0d0d2b",
               fontSize: 11,
               minRotation: 0,
               maxRotation: 0,
@@ -256,7 +256,7 @@ const getOptions = (
         yAxes: [
           {
             ticks: {
-              fontColor: "#7282c9",
+              fontColor: "#0d0d2b",
               fontSize: 11,
               callback(value: any) {
                 return formatMoney(Number(value), 1)

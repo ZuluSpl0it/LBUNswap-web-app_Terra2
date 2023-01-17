@@ -9,7 +9,7 @@
   top: 0;
   padding: 16px 0;
   @include mobile {
-    background-color: $realblue;
+    background-color: #694201; //$realblue;
   }
   z-index: 5000;
   transition: padding 0.125s ease-in-out;

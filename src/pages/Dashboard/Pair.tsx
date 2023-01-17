@@ -145,6 +145,8 @@ const PairPage = () => {
               value: recent?.daily?.volume
                 ? `${lookup(recent?.daily?.volume, USDC)}`
                 : "",
+                isCurrency: true,
+                decimals: 2,
               variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.volumeIncreasedRate || "0") * 100
@@ -156,6 +158,8 @@ const PairPage = () => {
               value: recent?.weekly?.volume
                 ? `${lookup(recent?.weekly?.volume, USDC)}`
                 : "",
+                isCurrency: true,
+                decimals: 2,
               variation: parseFloat(
                 (
                   parseFloat(recent?.weekly?.volumeIncreasedRate || "0") * 100
@@ -167,6 +171,8 @@ const PairPage = () => {
               value: recent?.daily?.fee
                 ? `${lookup(recent?.daily?.fee, USDC)}`
                 : "",
+                isCurrency: true,
+                decimals: 2,
               variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.feeIncreasedRate || "0") * 100
@@ -178,6 +184,8 @@ const PairPage = () => {
               value: recent?.daily?.liquidity
                 ? `${lookup(recent?.daily?.liquidity, USDC)}`
                 : "",
+              isCurrency: true,
+              decimals: 2,
               variation: parseFloat(
                 (
                   parseFloat(recent?.daily?.liquidityIncreasedRate || "0") * 100
